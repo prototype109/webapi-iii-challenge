@@ -2,22 +2,40 @@ const express = require("express");
 
 const userDb = require("./userDb");
 
+const postDb = require("../posts/postDb");
+
 const router = express.Router();
 
 router.post("/", validateUser, async (req, res) => {
   const addUser = await userDb.insert(req.body);
-  res.json(addUser);
+  if (addUser) {
+    res.status(201).json(addUser);
+  } else {
+    res
+      .status(500)
+      .json({ message: "Something went wrong, should not be getting here" });
+  }
 });
 
-router.post("/:id/posts", validateUserId, validatePost, (req, res) => {
-  const addPost = userDb.insert(req.newPost);
-  res.json(addPost);
+router.post("/:id/posts", validateUserId, validatePost, async (req, res) => {
+  const addPost = await postDb.insert(req.newPost);
+  if (addPost) {
+    res.status(201).json(addPost);
+  } else {
+    res
+      .status(500)
+      .json({ message: "Something went wrong, should not be getting here" });
+  }
 });
 
 router.get("/", async (req, res) => {
   try {
     const users = await userDb.get();
-    res.status(200).json(users);
+    if (users.length > 0) {
+      res.status(200).json(users);
+    } else {
+      res.status(500).json({ message: "Failed to get array of users" });
+    }
   } catch (error) {
     res
       .status(500)
@@ -26,7 +44,13 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/:id", validateUserId, (req, res) => {
-  res.status(200).json(req.user);
+  if (req.user) {
+    res.status(200).json(req.user);
+  } else {
+    res
+      .status(500)
+      .json({ message: "Something went wrong retrieving the users data" });
+  }
 });
 
 router.get("/:id/posts", validateUserId, async (req, res) => {
@@ -55,9 +79,7 @@ router.delete("/:id", validateUserId, async (req, res) => {
         .json({ message: "Should not be getting here in delete request" });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Do not know what happened in delete request" });
+    res.status(500).json(error);
   }
 });
 
@@ -72,9 +94,7 @@ router.put("/:id", validateUserId, validateUser, async (req, res) => {
       });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Should not be getting here in catch of put request" });
+    res.status(500).json(error);
   }
 });
 
@@ -93,9 +113,7 @@ async function validateUserId(req, res, next) {
       res.status(400).json({ message: "invalid user id" });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong trying to access the database" });
+    res.status(500).json(error);
   }
 }
 
