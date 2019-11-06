@@ -44,9 +44,24 @@ router.get("/:id/posts", validateUserId, async (req, res) => {
   }
 });
 
-router.delete("/:id", (req, res) => {});
+router.delete("/:id", validateUserId, async (req, res) => {
+  try {
+    const deleteUser = await userDb.remove(req.user.id);
+    if (deleteUser) {
+      res.status(204).end();
+    } else {
+      res
+        .status(500)
+        .json({ message: "Should not be getting here in delete request" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Do not know what happened in delete request" });
+  }
+});
 
-router.put("/:id", (req, res) => {});
+router.put("/:id", validateUserId, (req, res) => {});
 
 //custom middleware
 
