@@ -46,8 +46,8 @@ router.get("/:id/posts", validateUserId, async (req, res) => {
 
 router.delete("/:id", validateUserId, async (req, res) => {
   try {
-    const deleteUser = await userDb.remove(req.user.id);
-    if (deleteUser) {
+    const successDelete = await userDb.remove(req.user.id);
+    if (successDelete) {
       res.status(204).end();
     } else {
       res
@@ -61,7 +61,22 @@ router.delete("/:id", validateUserId, async (req, res) => {
   }
 });
 
-router.put("/:id", validateUserId, (req, res) => {});
+router.put("/:id", validateUserId, validateUser, async (req, res) => {
+  try {
+    const successEdit = await userDb.update(req.user.id, req.body);
+    if (successEdit) {
+      res.status(200).json({ message: "successfully update users" });
+    } else {
+      res.status(500).json({
+        message: "Should not be getting here in else statement of put request"
+      });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Should not be getting here in catch of put request" });
+  }
+});
 
 //custom middleware
 
